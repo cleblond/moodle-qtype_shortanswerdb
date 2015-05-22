@@ -39,8 +39,14 @@ class qtype_shortanswerdb_renderer extends qtype_renderer {
         global $PAGE, $CFG;
         $question = $qa->get_question();
         $currentanswer = $qa->get_last_qt_var('answer');
+        $currentanswertext = ''; 
+        $currentanswerid = '';
+
+        if ($options->readonly) {
         $splitanswer = explode("&", $currentanswer);
-        echo $currentanswer;
+        $currentanswertext = $splitanswer[1]; 
+        $currentanswerid = $splitanswer[0];
+        }
 
         $inputname = $qa->get_qt_field_name('answer');
         $inputattributes = array(
@@ -55,7 +61,7 @@ class qtype_shortanswerdb_renderer extends qtype_renderer {
         $inputattributesid = array(
             'type' => 'text',
             'name' => $inputnameid,
-            'value' => $splitanswer[0],
+            'value' => $currentanswerid,
             'id' => $inputnameid,
             'size' => 10,
         );
@@ -64,7 +70,7 @@ class qtype_shortanswerdb_renderer extends qtype_renderer {
         $inputattributestext = array(
             'type' => 'text',
             'name' => $inputnametext,
-            'value' => $splitanswer[1],
+            'value' => $currentanswertext,
             'id' => $inputnametext,
             'size' => 10,
         );
