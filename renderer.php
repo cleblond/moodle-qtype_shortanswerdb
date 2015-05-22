@@ -38,8 +38,8 @@ class qtype_shortanswerdb_renderer extends qtype_renderer {
             question_display_options $options) {
         global $PAGE, $CFG;
         $question = $qa->get_question();
-        //print_object($question);
         $currentanswer = $qa->get_last_qt_var('answer');
+        $splitanswer = explode("&", $currentanswer);
         echo $currentanswer;
 
         $inputname = $qa->get_qt_field_name('answer');
@@ -51,12 +51,11 @@ class qtype_shortanswerdb_renderer extends qtype_renderer {
             'size' => 80,
         );
 
-
         $inputnameid = $qa->get_qt_field_name('answerid');
         $inputattributesid = array(
             'type' => 'text',
             'name' => $inputnameid,
-            'value' => $currentanswer,
+            'value' => $splitanswer[0],
             'id' => $inputnameid,
             'size' => 10,
         );
@@ -65,14 +64,15 @@ class qtype_shortanswerdb_renderer extends qtype_renderer {
         $inputattributestext = array(
             'type' => 'text',
             'name' => $inputnametext,
-            'value' => $currentanswer,
+            'value' => $splitanswer[1],
             'id' => $inputnametext,
             'size' => 10,
         );
 
-
         if ($options->readonly) {
             $inputattributes['readonly'] = 'readonly';
+            $inputattributesid['readonly'] = 'readonly';
+            $inputattributestext['readonly'] = 'readonly';
         }
 
         $feedbackimg = '';
@@ -110,13 +110,10 @@ class qtype_shortanswerdb_renderer extends qtype_renderer {
 
         if (!$placeholder) {
             $result .= html_writer::start_tag('div', array('class' => 'ablock'));
-            $result .= html_writer::tag('label', get_string('answer', 'qtype_shortanswerdb',
-                    html_writer::tag('span', $input, array('class' => 'answer'))),
-                    array('for' => $inputattributes['id']));
+            $result .= html_writer::tag('span', $input, array('class' => 'answerhidden'));
 
-            $result .= html_writer::start_tag('div', array('class' => 'ablock'));
             $result .= html_writer::tag('label', get_string('answer', 'qtype_shortanswerdb',
-                    html_writer::tag('span', $inputtext, array('class' => 'answertext'))),
+                    html_writer::tag('span', $inputtext, array('class' => 'answer'))),
                     array('for' => $inputattributestext['id']));
 
             $result .= '<br/>';

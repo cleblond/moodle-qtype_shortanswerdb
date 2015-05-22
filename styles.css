@@ -3,6 +3,12 @@
     width: auto;
     display: inline;
 }
+
+.que.shortanswerdb .answerhidden {
+    padding: 0.3em;
+    width: auto;
+    display: none;
+}
 .que.shortanswerdb .answer input {
     width: 80%;
 }

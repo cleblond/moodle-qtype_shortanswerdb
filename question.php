@@ -80,10 +80,6 @@ class qtype_shortanswerdb_question extends question_graded_by_strategy
 
     public function compare_response_with_answer(array $response, question_answer $answer) {
 
-        echo $answer->answer."<br>";
-        echo $response['answer']."<br>";
-        print_object($response);
-
         if (!array_key_exists('answer', $response) || is_null($response['answer'])) {
             return false;
         }
@@ -198,7 +194,6 @@ class qtype_shortanswerdb_question_attempt extends question_attempt {
      * @return mixed the requested value.
      */
     public function get_submitted_var($name, $type, $postdata = null) {
-        echo "HERE WE ARE NOW";
         switch ($type) {
             case self::PARAM_MARK:
                 // Special case to work around PARAM_FLOAT converting '' to 0.

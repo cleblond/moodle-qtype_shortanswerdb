@@ -71,8 +71,6 @@ class qtype_shortanswerdb extends question_type {
             return $result;
         }
 
-        //print_object($question);
-        //print_object($question->answerid);
         $key = 0;
         foreach ($question->answer as $answer) {
             if (strpos($answer,'&') == false && $answer !== '') {
