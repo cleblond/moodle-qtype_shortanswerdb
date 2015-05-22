@@ -66,8 +66,94 @@ class qtype_shortanswerdb_edit_form extends question_edit_form {
         $question = $this->data_preprocessing_answers($question);
         $question = $this->data_preprocessing_hints($question);
 
+
         return $question;
     }
+
+
+    /**
+     * Perform the necessary preprocessing for the fields added by
+     * {@link add_per_answer_fields()}.
+     * @param object $question the data being passed to the form.
+     * @return object $question the modified data.
+     */
+    protected function data_preprocessing_answers($question, $withanswerfiles = false) {
+        if (empty($question->options->answers)) {
+            return $question;
+        }
+
+        //print_object($question);
+
+        $key = 0;
+        foreach ($question->options->answers as $answer) {
+            //print_object($answer);
+            if ($withanswerfiles) {
+                // Prepare the feedback editor to display files in draft area.
+                $draftitemid = file_get_submitted_draft_itemid('answer['.$key.']');
+                $question->answer[$key]['text'] = file_prepare_draft_area(
+                    $draftitemid,          // Draftid
+                    $this->context->id,    // context
+                    'question',            // component
+                    'answer',              // filarea
+                    !empty($answer->id) ? (int) $answer->id : null, // itemid
+                    $this->fileoptions,    // options
+                    $answer->answer        // text.
+                );
+                $question->answer[$key]['itemid'] = $draftitemid;
+                $question->answer[$key]['format'] = $answer->answerformat;
+            } else {
+                $question->answer[$key] = $answer->answer;
+            }
+
+            $answerexplode = explode('&', $question->answer[$key]);
+            //print_object($answerexplode);
+            $question->answerid[$key] = $answerexplode[0];
+            $question->answer[$key] = $answerexplode[1];
+            $question->fraction[$key] = 0 + $answer->fraction;
+            $question->feedback[$key] = array();
+
+            // Evil hack alert. Formslib can store defaults in two ways for
+            // repeat elements:
+            //   ->_defaultValues['fraction[0]'] and
+            //   ->_defaultValues['fraction'][0].
+            // The $repeatedoptions['fraction']['default'] = 0 bit above means
+            // that ->_defaultValues['fraction[0]'] has already been set, but we
+            // are using object notation here, so we will be setting
+            // ->_defaultValues['fraction'][0]. That does not work, so we have
+            // to unset ->_defaultValues['fraction[0]'].
+            unset($this->_form->_defaultValues["fraction[{$key}]"]);
+
+            // Prepare the feedback editor to display files in draft area.
+            $draftitemid = file_get_submitted_draft_itemid('feedback['.$key.']');
+            $question->feedback[$key]['text'] = file_prepare_draft_area(
+                $draftitemid,          // Draftid
+                $this->context->id,    // context
+                'question',            // component
+                'answerfeedback',      // filarea
+                !empty($answer->id) ? (int) $answer->id : null, // itemid
+                $this->fileoptions,    // options
+                $answer->feedback      // text.
+            );
+            $question->feedback[$key]['itemid'] = $draftitemid;
+            $question->feedback[$key]['format'] = $answer->feedbackformat;
+            $key++;
+        }
+
+        // Now process extra answer fields.
+        $extraanswerfields = question_bank::get_qtype($question->qtype)->extra_answer_fields();
+        //print_object($extraanswerfields);
+        if (is_array($extraanswerfields)) {
+            // Omit table name.
+            array_shift($extraanswerfields);
+            $question = $this->data_preprocessing_extra_answer_fields($question, $extraanswerfields);
+        }
+
+        return $question;
+    }
+
+
+
+
 
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
@@ -116,7 +202,7 @@ class qtype_shortanswerdb_edit_form extends question_edit_form {
         $repeated = array();
         $answeroptions = array();
         $mform->setType('answerid', PARAM_INT);
-        print_object( $label );
+        //print_object( $label );
         
 
         $answeroptions[] = $mform->createElement('text', 'answer',
@@ -139,7 +225,7 @@ class qtype_shortanswerdb_edit_form extends question_edit_form {
         $repeatedoptions['answerid']['type'] = PARAM_RAW;
         $repeatedoptions['fraction']['default'] = 0;
         $answersoption = 'answers';
-        print_object($repeated);
+        //print_object($repeated);
         return $repeated;
     }
 
@@ -174,9 +260,6 @@ class qtype_shortanswerdb_edit_form extends question_edit_form {
                 'noanswers', 'addanswers', $addoptions,
                 $this->get_more_choices_string(), true);
     }
-
-
-
 
 
 }

@@ -36,7 +36,7 @@ defined('MOODLE_INTERNAL') || die();
 class qtype_shortanswerdb_renderer extends qtype_renderer {
     public function formulation_and_controls(question_attempt $qa,
             question_display_options $options) {
-
+        global $PAGE, $CFG;
         $question = $qa->get_question();
         //print_object($question);
         $currentanswer = $qa->get_last_qt_var('answer');
@@ -50,6 +50,26 @@ class qtype_shortanswerdb_renderer extends qtype_renderer {
             'id' => $inputname,
             'size' => 80,
         );
+
+
+        $inputnameid = $qa->get_qt_field_name('answerid');
+        $inputattributesid = array(
+            'type' => 'text',
+            'name' => $inputnameid,
+            'value' => $currentanswer,
+            'id' => $inputnameid,
+            'size' => 10,
+        );
+
+        $inputnametext = $qa->get_qt_field_name('answertext');
+        $inputattributestext = array(
+            'type' => 'text',
+            'name' => $inputnametext,
+            'value' => $currentanswer,
+            'id' => $inputnametext,
+            'size' => 10,
+        );
+
 
         if ($options->readonly) {
             $inputattributes['readonly'] = 'readonly';
@@ -75,6 +95,8 @@ class qtype_shortanswerdb_renderer extends qtype_renderer {
             $inputattributes['size'] = round(strlen($placeholder) * 1.1);
         }
         $input = html_writer::empty_tag('input', $inputattributes) . $feedbackimg;
+        $inputid = html_writer::empty_tag('input', $inputattributesid);
+        $inputtext = html_writer::empty_tag('input', $inputattributestext);
 
         if ($placeholder) {
             $inputinplace = html_writer::tag('label', get_string('answer'),
@@ -91,6 +113,17 @@ class qtype_shortanswerdb_renderer extends qtype_renderer {
             $result .= html_writer::tag('label', get_string('answer', 'qtype_shortanswerdb',
                     html_writer::tag('span', $input, array('class' => 'answer'))),
                     array('for' => $inputattributes['id']));
+
+            $result .= html_writer::start_tag('div', array('class' => 'ablock'));
+            $result .= html_writer::tag('label', get_string('answer', 'qtype_shortanswerdb',
+                    html_writer::tag('span', $inputtext, array('class' => 'answertext'))),
+                    array('for' => $inputattributestext['id']));
+
+            $result .= '<br/>';
+            $result .= html_writer::tag('label', get_string('answerid', 'qtype_shortanswerdb',
+                    html_writer::tag('span', $inputid, array('class' => 'answerid'))),
+                    array('for' => $inputattributesid['id']));
+
             $result .= html_writer::end_tag('div');
         }
 
@@ -99,6 +132,9 @@ class qtype_shortanswerdb_renderer extends qtype_renderer {
                     $question->get_validation_error(array('answer' => $currentanswer)),
                     array('class' => 'validationerror'));
         }
+
+        $topnode = 'div.que.shortanswerdb#q' . $qa->get_slot();
+        $PAGE->requires->js_init_call('M.qtype_shortanswerdb.prepare_answer_field', array($topnode, $inputname, $inputnametext, $inputnameid), false);
 
         return $result;
     }

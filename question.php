@@ -58,9 +58,6 @@ class qtype_shortanswerdb_question extends question_graded_by_strategy
     }
 
     public function is_complete_response(array $response) {
-
-        echo array_key_exists('answer', $response);
-
         return array_key_exists('answer', $response) &&
                 ($response['answer'] || $response['answer'] === '0');
     }
@@ -82,6 +79,11 @@ class qtype_shortanswerdb_question extends question_graded_by_strategy
     }
 
     public function compare_response_with_answer(array $response, question_answer $answer) {
+
+        echo $answer->answer."<br>";
+        echo $response['answer']."<br>";
+        print_object($response);
+
         if (!array_key_exists('answer', $response) || is_null($response['answer'])) {
             return false;
         }
@@ -179,4 +181,48 @@ class qtype_shortanswerdb_question extends question_graded_by_strategy
                     $args, $forcedownload);
         }
     }
+}
+
+class qtype_shortanswerdb_question_attempt extends question_attempt {
+
+
+    /**
+     * Get a particular parameter from the current request. A wrapper round
+     * {@link optional_param()}, except that the results is returned without
+     * slashes.
+     * @param string $name the paramter name.
+     * @param int $type one of the standard PARAM_... constants, or one of the
+     *      special extra constands defined by this class.
+     * @param array $postdata (optional, only inteded for testing use) take the
+     *      data from this array, instead of from $_POST.
+     * @return mixed the requested value.
+     */
+    public function get_submitted_var($name, $type, $postdata = null) {
+        echo "HERE WE ARE NOW";
+        switch ($type) {
+            case self::PARAM_MARK:
+                // Special case to work around PARAM_FLOAT converting '' to 0.
+                return question_utils::clean_param_mark($this->get_submitted_var($name, PARAM_RAW_TRIMMED, $postdata));
+
+            case self::PARAM_FILES:
+                return $this->process_response_files($name, $name, $postdata);
+
+            case self::PARAM_RAW_FILES:
+                $var = $this->get_submitted_var($name, PARAM_RAW, $postdata);
+                return $this->process_response_files($name, $name . ':itemid', $postdata, $var);
+
+            default:
+                if (is_null($postdata)) {
+                    $var = optional_param($name, null, $type);
+                } else if (array_key_exists($name, $postdata)) {
+                    $var = clean_param($postdata[$name], $type);
+                } else {
+                    $var = null;
+                }
+
+                return $var;
+        }
+    }
+
+
 }
